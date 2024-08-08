@@ -1,0 +1,22 @@
+name: PHP Lint with Pint
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Pint
+        uses: aglipanci/laravel-pint-action@2.0.0
+        with:
+          preset: psr12
+          verboseMode: true
+      - name: Commit Changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Automated Laravel Pint Code Formatting Updates (CI)
+          commit_user_name: umair68
+          commit_user_email: umair68@mail.com
+          commit_author: umair68 <umair68@mail.com>
