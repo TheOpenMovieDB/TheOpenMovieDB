@@ -18,22 +18,6 @@ enum ReleaseStatus: int
     case CANCELED = 5;
 
     /**
-     * Get the name for the release status.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return match ($this) {
-            self::RELEASED => 'Released',
-            self::POST_PRODUCTION => 'Post Production',
-            self::PRE_PRODUCTION => 'Pre Production',
-            self::ANNOUNCED => 'Announced',
-            self::CANCELED => 'Canceled',
-        };
-    }
-
-    /**
      * Get the enum value for a given status string.
      *
      * @param string $status
@@ -48,6 +32,22 @@ enum ReleaseStatus: int
             'Announced' => self::ANNOUNCED->value,
             'Canceled' => self::CANCELED->value,
             default => self::UNKNOWN->value,
+        };
+    }
+
+    /**
+     * Get the name for the release status.
+     *
+     * @return string
+     */
+    public function getName(): string
+    {
+        return match ($this) {
+            self::RELEASED => 'Released',
+            self::POST_PRODUCTION => 'Post Production',
+            self::PRE_PRODUCTION => 'Pre Production',
+            self::ANNOUNCED => 'Announced',
+            self::CANCELED => 'Canceled',
         };
     }
 }

@@ -19,8 +19,7 @@ final readonly class TmdbImportService
     public function __construct(
         private string $baseUrl,
         private string $mediaType
-    )
-    {
+    ) {
         $this->date = now()->format('m_d_Y');
         $this->filePath = "{$this->mediaType}_ids_{$this->date}.json";
         $this->url = sprintf($this->baseUrl, $this->date);
@@ -37,11 +36,11 @@ final readonly class TmdbImportService
     public function process(bool $getFileContent = false): string|false
     {
 
-        if (!Storage::disk($this->diskName)->exists($this->filePath)) {
+        if ( ! Storage::disk($this->diskName)->exists($this->filePath)) {
             $this->import();
         }
 
-        if (!$getFileContent) {
+        if ( ! $getFileContent) {
             return $this->filePath;
         }
         return file_get_contents(Storage::disk($this->diskName)->path($this->filePath));
@@ -56,7 +55,7 @@ final readonly class TmdbImportService
     {
         try {
             $response = Http::get($this->url);
-            if (!$response->ok()) {
+            if ( ! $response->ok()) {
                 throw new Exception("Failed to download the file. HTTP Status: {$response->status()}");
             }
 
