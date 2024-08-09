@@ -15,5 +15,28 @@ final class Movie extends Model
 
     protected $table = 'movies';
 
+    protected $fillable = [
+        'tmdb_id',
+        'imdb_id',
+        'title',
+        'title_sort',
+        'original_language',
+        'is_adult',
+        'backdrop_path',
+        'budget',
+        'homepage',
+        'original_title',
+        'overview',
+        'popularity',
+        'poster_path',
+        'release_date',
+        'revenue',
+        'runtime',
+        'status',
+        'tagline',
+        'vote_average',
+        'vote_count',
+    ];
+
 
 }

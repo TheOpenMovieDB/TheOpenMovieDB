@@ -32,4 +32,22 @@ enum ReleaseStatus: int
             self::CANCELED => 'Canceled',
         };
     }
+
+    /**
+     * Get the enum value for a given status string.
+     *
+     * @param string $status
+     * @return int
+     */
+    public static function getValue(string $status): int
+    {
+        return match ($status) {
+            'Released' => self::RELEASED->value,
+            'Post Production' => self::POST_PRODUCTION->value,
+            'Pre Production' => self::PRE_PRODUCTION->value,
+            'Announced' => self::ANNOUNCED->value,
+            'Canceled' => self::CANCELED->value,
+            default => self::UNKNOWN->value,
+        };
+    }
 }

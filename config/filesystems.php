@@ -39,9 +39,16 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
+        ],
+        'tmdb_files' => [
+            'driver' => 'local',
+            'root' => storage_path('app/tmdb_files'),
+            'url' => env('APP_URL') . '/tmdb_files',
+            'visibility' => 'public',
+            'throw' => true,
         ],
 
         's3' => [
