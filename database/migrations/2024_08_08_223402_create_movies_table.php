@@ -15,7 +15,7 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::create(Movie::getTableName(), function (Blueprint $table): void {
-            $table->bigIncrements('id');
+            $table->id();
             $table->string('tmdb_id')->nullable();
             $table->string('imdb_id')->nullable();
             $table->string('title')->index();
