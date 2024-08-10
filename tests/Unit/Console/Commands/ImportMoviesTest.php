@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Console\Commands;
 
-use App\Console\Commands\ImportMovies;
 use App\Models\Movie;
-use PHPUnit\Framework\TestCase;
 
-class ImportMoviesTest extends \Tests\TestCase
+final class ImportMoviesTest extends \Tests\TestCase
 {
-    public function testImportMovies()
+    public function testImportMovies(): void
     {
 
         $this->assertEquals(0, Movie::count());
