@@ -133,3 +133,7 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/laravel,phpstorm+all
 
+# ide helper files
+.phpstorm.meta.php
+_ide_helper_models.php
+_ide_helper.php
