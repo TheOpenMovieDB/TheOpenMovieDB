@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Traits\HasTableName;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @mixin IdeHelperMovie
@@ -40,6 +41,15 @@ final class Movie extends Model
         'vote_average',
         'vote_count',
     ];
+
+    /**
+     * @return BelongsToMany<Genre>
+     */
+
+    public function genres(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class);
+    }
 
 
 }

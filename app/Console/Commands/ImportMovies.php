@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\ReleaseStatus;
+use App\Models\Genre;
 use App\Models\Movie;
 use App\Services\TmdbImportService;
+use Chiiya\Tmdb\Entities\Genre as TmdbGenre;
 use Chiiya\Tmdb\Entities\Movies\MovieDetails;
 use Chiiya\Tmdb\Repositories\MovieRepository;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
@@ -88,6 +91,20 @@ final class ImportMovies extends Command
     }
 
     /**
+     * @param MovieDetails $movieData
+     * @return Collection<int>
+     */
+    public function saveGenres(MovieDetails $movieData): Collection
+    {
+        return collect($movieData->genres)->map(function (TmdbGenre $genre) {
+            return Genre::query()->firstOrCreate([
+                'tmdb_id' => $genre->id,
+                'name' => $genre->name
+            ])->id;
+        });
+    }
+
+    /**
      * Import a movie if it doesn't already exist.
      *
      * @param object $movie
@@ -130,7 +147,7 @@ final class ImportMovies extends Command
     private function saveMovie(MovieDetails $movieData): void
     {
         DB::transaction(function () use ($movieData): void {
-            Movie::query()->create([
+            $movie = Movie::query()->create([
                 'tmdb_id' => $movieData->id,
                 'imdb_id' => $movieData->imdb_id,
                 'title' => $movieData->title,
@@ -152,6 +169,11 @@ final class ImportMovies extends Command
                 'vote_average' => $movieData->vote_average,
                 'vote_count' => $movieData->vote_count,
             ]);
+
+            // genres
+            $genreIds = $this->saveGenres($movieData);
+            $movie->genres()->sync($genreIds);
         });
     }
+
 }
