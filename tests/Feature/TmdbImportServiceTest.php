@@ -4,18 +4,34 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Services\TmdbImportService;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 final class TmdbImportServiceTest extends TestCase
 {
     /**
-     * A basic feature test example.
+     * Test the TMDb import service.
      */
-    public function test_example(): void
+    public function test_tmdb_import_service(): void
     {
-        self::markTestIncomplete('todo');
-        $response = $this->get('/');
+        $url = 'http://files.tmdb.org/p/exports/movie_ids_%s.json.gz';
+        $today = now()->format('m_d_Y');
+        $tmdbMovieService = new TmdbImportService(sprintf($url, $today), 'movies');
 
-        $response->assertStatus(200);
+
+        $disk = Storage::disk('tmdb_files');
+
+        $disk->deleteDirectory('/');
+        $disk->makeDirectory('/');
+
+        $downloadedFilePath = $tmdbMovieService->process();
+
+        $this->assertTrue($disk->exists($downloadedFilePath), 'File does not exist in the storage.');
+
+        $downloadedFile = $disk->get($downloadedFilePath);
+        $this->assertNotEmpty($downloadedFile, 'File is empty.');
+
+        $disk->delete($downloadedFilePath);
     }
 }

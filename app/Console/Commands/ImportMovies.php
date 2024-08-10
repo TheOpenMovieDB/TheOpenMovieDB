@@ -23,7 +23,7 @@ final class ImportMovies extends Command
      *
      * @var string
      */
-    protected $signature = 'import:movies {--S|sleep= : Sleep duration between requests in milliseconds}';
+    protected $signature = 'import:movies {--S|sleep= : Sleep duration between requests in milliseconds} {--L|limit= : Limit the number of movies to import}';
 
     /**
      * The console command description.
@@ -70,9 +70,16 @@ final class ImportMovies extends Command
             $data = Storage::disk('tmdb_files')->get($filePath);
             $lines = explode("\n", trim($data));
 
-            collect($lines)
-                ->map(fn($line) => json_decode($line))
-                ->each(fn($movie) => $this->importMovie($movie));
+
+            $movies = collect($lines)
+                ->map(fn($line) => json_decode($line));
+
+            $limit = $this->option('limit');
+            if ($limit && (int)$limit > 0) {
+                $movies = $movies->take((int)$limit);
+            }
+
+            $movies->each(fn($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
@@ -107,15 +114,12 @@ final class ImportMovies extends Command
 
             $movieDetails = $this->tmdbMovieRepository->getMovie($movie->id);
 
-
             $this->saveMovie($movieDetails);
             $this->info("Successfully imported movie with TMDb ID {$movie->id}.");
         } catch (Exception $e) {
             $this->error("Failed to import movie with TMDb ID {$movie->id}: {$e->getMessage()}");
-
         }
     }
-
 
     /**
      * Save a movie to the database.
