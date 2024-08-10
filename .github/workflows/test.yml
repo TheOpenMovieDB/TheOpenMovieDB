@@ -49,4 +49,5 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
+          TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
         run: php artisan test
