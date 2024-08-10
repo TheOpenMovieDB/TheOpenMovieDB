@@ -13,6 +13,8 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Sleep;
+use Throwable;
 
 final class ImportMovies extends Command
 {
@@ -21,7 +23,7 @@ final class ImportMovies extends Command
      *
      * @var string
      */
-    protected $signature = 'import:movies';
+    protected $signature = 'import:movies {--S|sleep= : Sleep duration between requests in milliseconds}';
 
     /**
      * The console command description.
@@ -43,8 +45,9 @@ final class ImportMovies extends Command
      * @param MovieRepository $movies
      */
     public function __construct(
-        private MovieRepository $movies,
-    ) {
+        private readonly MovieRepository $tmdbMovieRepository
+    )
+    {
         parent::__construct();
     }
 
@@ -55,20 +58,27 @@ final class ImportMovies extends Command
      */
     public function handle(): void
     {
-        $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
-        $filePath = $tmdbService->process();
+        try {
+            $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
+            $filePath = $tmdbService->process();
 
-        if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
-            $this->error("File not found on disk: tmdb_files");
+            if (!Storage::disk('tmdb_files')->exists($filePath)) {
+                $this->error("File not found on disk: tmdb_files");
+                return;
+            }
+
+            $data = Storage::disk('tmdb_files')->get($filePath);
+            $lines = explode("\n", trim($data));
+
+            collect($lines)
+                ->map(fn($line) => json_decode($line))
+                ->each(fn($movie) => $this->importMovie($movie));
+
+            $tmdbService->delete();
+        } catch (Exception $exception) {
+            $this->error($exception->getMessage());
             return;
         }
-
-        $data = Storage::disk('tmdb_files')->get($filePath);
-        $lines = explode("\n", trim($data));
-
-        collect($lines)
-            ->map(fn ($line) => json_decode($line))
-            ->each(fn ($movie) => $this->importMovie($movie));
     }
 
     /**
@@ -76,6 +86,8 @@ final class ImportMovies extends Command
      *
      * @param object $movie
      * @return void
+     * @property int $id
+     *
      */
     private function importMovie(object $movie): void
     {
@@ -87,7 +99,13 @@ final class ImportMovies extends Command
                 return;
             }
 
-            $movieDetails = $this->movies->getMovie($movie->id);
+            if ($sleepDuration = $this->option('sleep')) {
+                // To avoid getting rate-limited by the TMDb API
+                // https://developer.themoviedb.org/docs/rate-limiting
+                Sleep::for((int)$sleepDuration)->milliseconds();
+            }
+
+            $movieDetails = $this->tmdbMovieRepository->getMovie($movie->id);
 
 
             $this->saveMovie($movieDetails);
@@ -104,6 +122,7 @@ final class ImportMovies extends Command
      *
      * @param MovieDetails $movieData
      * @return void
+     * @throws Throwable
      */
     private function saveMovie(MovieDetails $movieData): void
     {

@@ -8,6 +8,9 @@ use App\Traits\HasTableName;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperMovie
+ */
 final class Movie extends Model
 {
     use HasFactory;

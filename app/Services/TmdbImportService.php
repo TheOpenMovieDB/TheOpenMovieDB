@@ -80,4 +80,15 @@ final readonly class TmdbImportService
             throw $exception;
         }
     }
+
+    /**
+     * @throws Exception
+     */
+    public function delete()
+    {
+        if (Storage::disk($this->diskName)->exists($this->filePath)) {
+            return Storage::disk($this->diskName)->delete($this->filePath);
+        }
+        throw new Exception("Failed to delete the file.");
+    }
 }
