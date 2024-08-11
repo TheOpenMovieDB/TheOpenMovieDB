@@ -7,10 +7,13 @@ namespace App\Console\Commands;
 use App\Enums\ReleaseStatus;
 use App\Models\Genre;
 use App\Models\Movie;
+use App\Models\Person;
 use App\Services\TmdbImportService;
+use Chiiya\Tmdb\Entities\Common\CastCredit;
 use Chiiya\Tmdb\Entities\Genre as TmdbGenre;
 use Chiiya\Tmdb\Entities\Movies\MovieDetails;
 use Chiiya\Tmdb\Repositories\MovieRepository;
+use Chiiya\Tmdb\Repositories\PersonRepository;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -48,8 +51,10 @@ final class ImportMovies extends Command
      * @param MovieRepository $movies
      */
     public function __construct(
-        private readonly MovieRepository $tmdbMovieRepository
-    ) {
+        private readonly MovieRepository  $tmdbMovieRepository,
+        private readonly PersonRepository $personRepository,
+    )
+    {
         parent::__construct();
     }
 
@@ -64,7 +69,7 @@ final class ImportMovies extends Command
             $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
             $filePath = $tmdbService->process();
 
-            if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
+            if (!Storage::disk('tmdb_files')->exists($filePath)) {
                 $this->error("File not found on disk: tmdb_files");
                 return;
             }
@@ -74,14 +79,14 @@ final class ImportMovies extends Command
 
 
             $movies = collect($lines)
-                ->map(fn ($line) => json_decode($line));
+                ->map(fn($line) => json_decode($line));
 
             $limit = $this->option('limit');
             if ($limit && (int)$limit > 0) {
                 $movies = $movies->take((int)$limit);
             }
 
-            $movies->each(fn ($movie) => $this->importMovie($movie));
+            $movies->each(fn($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
@@ -91,17 +96,23 @@ final class ImportMovies extends Command
     }
 
     /**
+     * Save & sync genres to the database.
+     *
+     * @param Movie $movie
      * @param MovieDetails $movieData
-     * @return Collection<int>
+     * @return void
+     *
      */
-    public function saveGenres(MovieDetails $movieData): Collection
+    public function saveGenres(Movie $movie, MovieDetails $movieData): void
     {
-        return collect($movieData->genres)->map(function (TmdbGenre $genre) {
+        $genreIds = collect($movieData->genres)->map(function (TmdbGenre $genre) {
             return Genre::query()->firstOrCreate([
                 'tmdb_id' => $genre->id,
                 'name' => $genre->name
             ])->id;
         });
+
+        $movie->genres()->sync($genreIds);
     }
 
     /**
@@ -128,7 +139,7 @@ final class ImportMovies extends Command
                 Sleep::for((int)$sleepDuration)->milliseconds();
             }
 
-            $movieDetails = $this->tmdbMovieRepository->getMovie($movie->id);
+            $movieDetails = $this->tmdbMovieRepository->getMovie($movie->id, ['append_to_response' => 'credits']);
 
             $this->saveMovie($movieDetails);
             $this->info("Successfully imported movie with TMDb ID {$movie->id}.");
@@ -170,10 +181,80 @@ final class ImportMovies extends Command
                 'vote_count' => $movieData->vote_count,
             ]);
 
-            // genres
-            $genreIds = $this->saveGenres($movieData);
-            $movie->genres()->sync($genreIds);
+            $this->saveGenres($movie, $movieData);
+            $this->saveCastMembers($movie, $movieData->credits?->cast ?? []);
+            $this->saveCrewMembers($movie, $movieData->credits?->crew ?? []);
         });
     }
 
+    /**
+     * Save cast members to the database.
+     *
+     * @param Movie $movie
+     * @param array $castMembers
+     * @return void
+     */
+    private function saveCastMembers(Movie $movie, array $castMembers): void
+    {
+        /** @var CastCredit $castMember */
+        foreach ($castMembers as $castMember) {
+            $personDetails = $this->personRepository->getPerson($castMember->id);
+            $person = Person::query()->firstOrCreate(
+                ['tmdb_id' => $castMember->id],
+                [
+                    'name' => $personDetails->name,
+                    'birthday' => $personDetails->birthday ?? null,
+                    'biography' => $personDetails->biography ?? null,
+                    'profile_path' => $personDetails->profile_path ?? null,
+                    'imdb_id' => $personDetails->imdb_id,
+                    'is_adult' => $personDetails->adult,
+                    'popularity' => $personDetails->popularity,
+                    'gender' => $personDetails->gender,
+                    'known_for_department' => $personDetails->known_for_department,
+                ]
+            );
+
+            $movie->people()->attach($person->id, [
+                'role' => 'cast',
+                'character' => $castMember->character ?? null,
+                'credit_id' => $castMember->credit_id ?? null,
+                'order' => $castMember->order ?? null,
+            ]);
+        }
+    }
+
+    /**
+     * Save crew members to the database.
+     *
+     * @param Movie $movie
+     * @param array $crewMembers
+     * @return void
+     */
+    private function saveCrewMembers(Movie $movie, array $crewMembers): void
+    {
+        foreach ($crewMembers as $crewMember) {
+            $personDetails = $this->personRepository->getPerson($crewMember->id);
+            $person = Person::query()->firstOrCreate(
+                ['tmdb_id' => $crewMember->id],
+                [
+                    'name' => $personDetails->name,
+                    'birthday' => $personDetails->birthday ?? null,
+                    'biography' => $personDetails->biography ?? null,
+                    'profile_path' => $personDetails->profile_path ?? null,
+                    'imdb_id' => $personDetails->imdb_id ?? null,
+                    'is_adult' => $personDetails->adult,
+                    'popularity' => $personDetails->popularity,
+                    'gender' => $personDetails->gender,
+                    'known_for_department' => $personDetails->known_for_department,
+
+                ]
+            );
+
+            $movie->people()->attach($person->id, [
+                'role' => 'crew',
+                'character' => $crewMember->job ?? null,
+                'credit_id' => $crewMember->credit_id ?? null,
+            ]);
+        }
+    }
 }
