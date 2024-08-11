@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Person;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
-class PersonPolicy
+final class PersonPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        //
+
     }
 
     /**
@@ -21,7 +22,7 @@ class PersonPolicy
      */
     public function view(User $user, Person $person): bool
     {
-        //
+
     }
 
     /**
@@ -29,7 +30,7 @@ class PersonPolicy
      */
     public function create(User $user): bool
     {
-        //
+
     }
 
     /**
@@ -37,7 +38,7 @@ class PersonPolicy
      */
     public function update(User $user, Person $person): bool
     {
-        //
+
     }
 
     /**
@@ -45,7 +46,7 @@ class PersonPolicy
      */
     public function delete(User $user, Person $person): bool
     {
-        //
+
     }
 
     /**
@@ -53,7 +54,7 @@ class PersonPolicy
      */
     public function restore(User $user, Person $person): bool
     {
-        //
+
     }
 
     /**
@@ -61,6 +62,6 @@ class PersonPolicy
      */
     public function forceDelete(User $user, Person $person): bool
     {
-        //
+
     }
 }
