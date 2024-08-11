@@ -51,5 +51,33 @@ final class Movie extends Model
         return $this->belongsToMany(Genre::class);
     }
 
+    /**
+     * @return BelongsToMany<Person>
+     */
+    public function people(): BelongsToMany
+    {
+        return $this->belongsToMany(Person::class);
+    }
+
+
+    /**
+     * @return BelongsToMany<Person>
+     */
+    public function cast(): BelongsToMany
+    {
+        return $this->belongsToMany(Person::class,)
+            ->wherePivot('role', '=', 'cast');
+
+    }
+
+    /**
+     * @return BelongsToMany<Person>
+     */
+    public function crew(): BelongsToMany
+    {
+        return $this->belongsToMany(Person::class)
+            ->wherePivot('role', '=', 'crew');
+
+    }
 
 }
