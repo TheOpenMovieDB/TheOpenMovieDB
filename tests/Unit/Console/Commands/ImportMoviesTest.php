@@ -19,6 +19,11 @@ final class ImportMoviesTest extends \Tests\TestCase
             ->assertExitCode(0);
 
         $this->assertEquals(10, Movie::count());
-        $this->assertGreaterThan(0, Genre::count());
+        $movie = Movie::first();
+        $this->assertNotNull($movie);
+
+        $this->assertGreaterThan(0, $movie->genres()->count());
+        $this->assertGreaterThan(0, $movie->cast()->count());
+        $this->assertGreaterThan(0, $movie->crew()->count());
     }
 }
