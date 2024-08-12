@@ -80,4 +80,9 @@ final class Movie extends Model
 
     }
 
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class);
+    }
+
 }

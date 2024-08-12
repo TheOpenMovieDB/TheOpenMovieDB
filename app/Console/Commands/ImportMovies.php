@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Enums\ReleaseStatus;
+use App\Models\Company;
 use App\Models\Genre;
 use App\Models\Movie;
 use App\Models\Person;
@@ -52,7 +53,8 @@ final class ImportMovies extends Command
     public function __construct(
         private readonly MovieRepository  $tmdbMovieRepository,
         private readonly PersonRepository $personRepository,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
@@ -67,7 +69,7 @@ final class ImportMovies extends Command
             $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
             $filePath = $tmdbService->process();
 
-            if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
+            if (!Storage::disk('tmdb_files')->exists($filePath)) {
                 $this->error("File not found on disk: tmdb_files");
                 return;
             }
@@ -77,14 +79,14 @@ final class ImportMovies extends Command
 
 
             $movies = collect($lines)
-                ->map(fn ($line) => json_decode($line));
+                ->map(fn($line) => json_decode($line));
 
             $limit = $this->option('limit');
             if ($limit && (int)$limit > 0) {
                 $movies = $movies->take((int)$limit);
             }
 
-            $movies->each(fn ($movie) => $this->importMovie($movie));
+            $movies->each(fn($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
@@ -179,9 +181,11 @@ final class ImportMovies extends Command
                 'vote_count' => $movieData->vote_count,
             ]);
 
+
             $this->saveGenres($movie, $movieData);
             $this->saveCastMembers($movie, $movieData->credits?->cast ?? []);
             $this->saveCrewMembers($movie, $movieData->credits?->crew ?? []);
+            $this->saveCompanies($movie, $movieData->production_companies ?? []);
         });
     }
 
@@ -255,4 +259,28 @@ final class ImportMovies extends Command
             ]);
         }
     }
+
+    /**
+     * Save production companies to the database and associate them with the movie.
+     *
+     * @param Movie $movie
+     * @param array $companies
+     * @return void
+     */
+    private function saveCompanies(Movie $movie, array $companies): void
+    {
+        $companyIds = collect($companies)->map(function ($companyData) {
+            return Company::query()->firstOrCreate([
+                'tmdb_id' => $companyData->id,
+            ], [
+                'name' => $companyData->name,
+                'logo_path' => $companyData->logo_path,
+                'origin_country' => $companyData->origin_country,
+            ])->id;
+        });
+
+        $movie->companies()->sync($companyIds);
+    }
+
+
 }
