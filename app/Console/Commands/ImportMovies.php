@@ -54,8 +54,7 @@ final class ImportMovies extends Command
     public function __construct(
         private readonly MovieRepository  $tmdbMovieRepository,
         private readonly PersonRepository $personRepository,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
@@ -70,7 +69,7 @@ final class ImportMovies extends Command
             $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
             $filePath = $tmdbService->process();
 
-            if (!Storage::disk('tmdb_files')->exists($filePath)) {
+            if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
                 $this->error("File not found on disk: tmdb_files");
                 return;
             }
@@ -80,14 +79,14 @@ final class ImportMovies extends Command
 
 
             $movies = collect($lines)
-                ->map(fn($line) => json_decode($line));
+                ->map(fn ($line) => json_decode($line));
 
             $limit = $this->option('limit');
             if ($limit && (int)$limit > 0) {
                 $movies = $movies->take((int)$limit);
             }
 
-            $movies->each(fn($movie) => $this->importMovie($movie));
+            $movies->each(fn ($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
@@ -104,13 +103,13 @@ final class ImportMovies extends Command
      * @return void
      *
      */
-    public function saveGenres(Movie $movie, MovieDetails $movieData,int $userId): void
+    public function saveGenres(Movie $movie, MovieDetails $movieData, int $userId): void
     {
         $genreIds = collect($movieData->genres)->map(function (TmdbGenre $genre) use ($userId) {
             return Genre::query()->firstOrCreate([
                 'tmdb_id' => $genre->id,
                 'name' => $genre->name,
-                'user_id'=> $userId,
+                'user_id' => $userId,
             ])->id;
         });
 
@@ -159,7 +158,7 @@ final class ImportMovies extends Command
      */
     private function saveMovie(MovieDetails $movieData): void
     {
-        $systemUserId = cache()->remember("system_user_id", now()->addMinutes(30), fn() => User::whereName(config('system.name'))->firstOrFail()->id);
+        $systemUserId = cache()->remember("system_user_id", now()->addMinutes(30), fn () => User::whereName(config('system.name'))->firstOrFail()->id);
 
         DB::transaction(function () use ($systemUserId, $movieData): void {
             $movie = Movie::query()->create([
@@ -201,7 +200,7 @@ final class ImportMovies extends Command
      * @param array $castMembers
      * @return void
      */
-    private function saveCastMembers(Movie $movie, array $castMembers,int $userId): void
+    private function saveCastMembers(Movie $movie, array $castMembers, int $userId): void
     {
         /** @var CastCredit $castMember */
         foreach ($castMembers as $castMember) {

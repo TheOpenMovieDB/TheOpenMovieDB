@@ -40,6 +40,14 @@ final class User extends Authenticatable
     ];
 
     /**
+     * @return HasMany<Movie>
+     */
+    public function movies(): HasMany
+    {
+        return $this->hasMany(Movie::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -50,14 +58,6 @@ final class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-
-    /**
-     * @return HasMany<Movie>
-     */
-    public function movies(): HasMany
-    {
-        return $this->hasMany(Movie::class);
     }
 
 
