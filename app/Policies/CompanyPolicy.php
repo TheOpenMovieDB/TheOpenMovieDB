@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Company;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
-class CompanyPolicy
+final class CompanyPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        //
+
     }
 
     /**
@@ -21,7 +22,7 @@ class CompanyPolicy
      */
     public function view(User $user, Company $company): bool
     {
-        //
+
     }
 
     /**
@@ -29,7 +30,7 @@ class CompanyPolicy
      */
     public function create(User $user): bool
     {
-        //
+
     }
 
     /**
@@ -37,7 +38,7 @@ class CompanyPolicy
      */
     public function update(User $user, Company $company): bool
     {
-        //
+
     }
 
     /**
@@ -45,7 +46,7 @@ class CompanyPolicy
      */
     public function delete(User $user, Company $company): bool
     {
-        //
+
     }
 
     /**
@@ -53,7 +54,7 @@ class CompanyPolicy
      */
     public function restore(User $user, Company $company): bool
     {
-        //
+
     }
 
     /**
@@ -61,6 +62,6 @@ class CompanyPolicy
      */
     public function forceDelete(User $user, Company $company): bool
     {
-        //
+
     }
 }

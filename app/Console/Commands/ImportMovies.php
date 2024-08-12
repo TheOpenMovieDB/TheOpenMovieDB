@@ -53,8 +53,7 @@ final class ImportMovies extends Command
     public function __construct(
         private readonly MovieRepository  $tmdbMovieRepository,
         private readonly PersonRepository $personRepository,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
@@ -69,7 +68,7 @@ final class ImportMovies extends Command
             $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
             $filePath = $tmdbService->process();
 
-            if (!Storage::disk('tmdb_files')->exists($filePath)) {
+            if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
                 $this->error("File not found on disk: tmdb_files");
                 return;
             }
@@ -79,14 +78,14 @@ final class ImportMovies extends Command
 
 
             $movies = collect($lines)
-                ->map(fn($line) => json_decode($line));
+                ->map(fn ($line) => json_decode($line));
 
             $limit = $this->option('limit');
             if ($limit && (int)$limit > 0) {
                 $movies = $movies->take((int)$limit);
             }
 
-            $movies->each(fn($movie) => $this->importMovie($movie));
+            $movies->each(fn ($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
