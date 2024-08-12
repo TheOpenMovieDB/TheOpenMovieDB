@@ -18,6 +18,7 @@ return new class () extends Migration {
             $table->id();
             $table->unsignedInteger('tmdb_id')->unique();
             $table->string('imdb_id')->nullable()->unique();
+            $table->foreignIdFor(\App\Models\User::class,'user_id');
             $table->string('name');
             $table->date('birthday')->nullable();
             $table->text('biography')->nullable();

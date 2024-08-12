@@ -29,6 +29,7 @@ final class Person extends Model
         'place_of_birth',
         'popularity',
         'is_adult',
+        'user_id',
     ];
 
     /**

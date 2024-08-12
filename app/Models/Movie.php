@@ -7,15 +7,18 @@ namespace App\Models;
 use App\Traits\HasTableName;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use OwenIt\Auditing\Auditable;
 
 /**
  * @mixin IdeHelperMovie
  */
-final class Movie extends Model
+final class Movie extends Model implements \OwenIt\Auditing\Contracts\Auditable
 {
     use HasFactory;
     use HasTableName;
+    use Auditable;
 
     protected $table = 'movies';
 
@@ -40,11 +43,25 @@ final class Movie extends Model
         'tagline',
         'vote_average',
         'vote_count',
+        'user_id'
     ];
 
     /**
      * @return BelongsToMany<Genre>
      */
+
+
+    /**
+     * @return BelongsTo<User>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class)->withDefault([
+            'name' => config('system.name'),
+            'email' => config('system.email'),
+            'id' => 1,
+        ]);
+    }
 
     public function genres(): BelongsToMany
     {
@@ -65,7 +82,7 @@ final class Movie extends Model
      */
     public function cast(): BelongsToMany
     {
-        return $this->belongsToMany(Person::class, )
+        return $this->belongsToMany(Person::class)
             ->wherePivot('role', '=', 'cast');
 
     }

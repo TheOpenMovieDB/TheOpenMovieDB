@@ -36,6 +36,8 @@ return new class () extends Migration {
             $table->string('tagline')->nullable();
             $table->unsignedBigInteger('vote_average')->nullable();
             $table->unsignedBigInteger('vote_count')->nullable();
+            $table->foreignIdFor(\App\Models\User::class,'user_id');
+
             $table->timestamps();
         });
     }

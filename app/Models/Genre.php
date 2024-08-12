@@ -19,7 +19,7 @@ final class Genre extends Model
     protected $table = 'genres';
 
 
-    protected $fillable = ['name', 'tmdb_id'];
+    protected $fillable = ['name', 'tmdb_id','user_id'];
 
     /**
      * @return BelongsToMany<Movie>

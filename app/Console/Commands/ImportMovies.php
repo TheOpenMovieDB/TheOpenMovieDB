@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Genre;
 use App\Models\Movie;
 use App\Models\Person;
+use App\Models\User;
 use App\Services\TmdbImportService;
 use Chiiya\Tmdb\Entities\Common\CastCredit;
 use Chiiya\Tmdb\Entities\Genre as TmdbGenre;
@@ -53,7 +54,8 @@ final class ImportMovies extends Command
     public function __construct(
         private readonly MovieRepository  $tmdbMovieRepository,
         private readonly PersonRepository $personRepository,
-    ) {
+    )
+    {
         parent::__construct();
     }
 
@@ -68,7 +70,7 @@ final class ImportMovies extends Command
             $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
             $filePath = $tmdbService->process();
 
-            if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
+            if (!Storage::disk('tmdb_files')->exists($filePath)) {
                 $this->error("File not found on disk: tmdb_files");
                 return;
             }
@@ -78,14 +80,14 @@ final class ImportMovies extends Command
 
 
             $movies = collect($lines)
-                ->map(fn ($line) => json_decode($line));
+                ->map(fn($line) => json_decode($line));
 
             $limit = $this->option('limit');
             if ($limit && (int)$limit > 0) {
                 $movies = $movies->take((int)$limit);
             }
 
-            $movies->each(fn ($movie) => $this->importMovie($movie));
+            $movies->each(fn($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
@@ -102,12 +104,13 @@ final class ImportMovies extends Command
      * @return void
      *
      */
-    public function saveGenres(Movie $movie, MovieDetails $movieData): void
+    public function saveGenres(Movie $movie, MovieDetails $movieData,int $userId): void
     {
-        $genreIds = collect($movieData->genres)->map(function (TmdbGenre $genre) {
+        $genreIds = collect($movieData->genres)->map(function (TmdbGenre $genre) use ($userId) {
             return Genre::query()->firstOrCreate([
                 'tmdb_id' => $genre->id,
-                'name' => $genre->name
+                'name' => $genre->name,
+                'user_id'=> $userId,
             ])->id;
         });
 
@@ -156,7 +159,9 @@ final class ImportMovies extends Command
      */
     private function saveMovie(MovieDetails $movieData): void
     {
-        DB::transaction(function () use ($movieData): void {
+        $systemUserId = cache()->remember("system_user_id", now()->addMinutes(30), fn() => User::whereName(config('system.name'))->firstOrFail()->id);
+
+        DB::transaction(function () use ($systemUserId, $movieData): void {
             $movie = Movie::query()->create([
                 'tmdb_id' => $movieData->id,
                 'imdb_id' => $movieData->imdb_id,
@@ -178,13 +183,14 @@ final class ImportMovies extends Command
                 'tagline' => $movieData->tagline,
                 'vote_average' => $movieData->vote_average,
                 'vote_count' => $movieData->vote_count,
+                'user_id' => $systemUserId
             ]);
 
 
-            $this->saveGenres($movie, $movieData);
-            $this->saveCastMembers($movie, $movieData->credits?->cast ?? []);
-            $this->saveCrewMembers($movie, $movieData->credits?->crew ?? []);
-            $this->saveCompanies($movie, $movieData->production_companies ?? []);
+            $this->saveGenres($movie, $movieData, $systemUserId);
+            $this->saveCastMembers($movie, $movieData->credits?->cast ?? [], $systemUserId);
+            $this->saveCrewMembers($movie, $movieData->credits?->crew ?? [], $systemUserId);
+            $this->saveCompanies($movie, $movieData->production_companies ?? [], $systemUserId);
         });
     }
 
@@ -195,7 +201,7 @@ final class ImportMovies extends Command
      * @param array $castMembers
      * @return void
      */
-    private function saveCastMembers(Movie $movie, array $castMembers): void
+    private function saveCastMembers(Movie $movie, array $castMembers,int $userId): void
     {
         /** @var CastCredit $castMember */
         foreach ($castMembers as $castMember) {
@@ -212,6 +218,7 @@ final class ImportMovies extends Command
                     'popularity' => $personDetails->popularity,
                     'gender' => $personDetails->gender,
                     'known_for_department' => $personDetails->known_for_department,
+                    'user_id' => $userId
                 ]
             );
 
@@ -231,7 +238,7 @@ final class ImportMovies extends Command
      * @param array $crewMembers
      * @return void
      */
-    private function saveCrewMembers(Movie $movie, array $crewMembers): void
+    private function saveCrewMembers(Movie $movie, array $crewMembers, int $userId): void
     {
         foreach ($crewMembers as $crewMember) {
             $personDetails = $this->personRepository->getPerson($crewMember->id);
@@ -247,6 +254,7 @@ final class ImportMovies extends Command
                     'popularity' => $personDetails->popularity,
                     'gender' => $personDetails->gender,
                     'known_for_department' => $personDetails->known_for_department,
+                    'user_id' => $userId,
 
                 ]
             );
@@ -266,15 +274,16 @@ final class ImportMovies extends Command
      * @param array $companies
      * @return void
      */
-    private function saveCompanies(Movie $movie, array $companies): void
+    private function saveCompanies(Movie $movie, array $companies, int $userId): void
     {
-        $companyIds = collect($companies)->map(function ($companyData) {
+        $companyIds = collect($companies)->map(function ($companyData) use ($userId) {
             return Company::query()->firstOrCreate([
                 'tmdb_id' => $companyData->id,
             ], [
                 'name' => $companyData->name,
                 'logo_path' => $companyData->logo_path,
                 'origin_country' => $companyData->origin_country,
+                'user_id' => $userId
             ])->id;
         });
 

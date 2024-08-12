@@ -18,7 +18,8 @@ final class Company extends Model
         'tmdb_id',
         'name',
         'logo_path',
-        'origin_country'
+        'origin_country',
+        'user_id',
     ];
 
 

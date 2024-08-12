@@ -17,6 +17,7 @@ return new class () extends Migration {
             $table->id();
             $table->unsignedInteger('tmdb_id')->unique();
             $table->string('name')->unique();
+            $table->foreignIdFor(App\Models\User::class, 'user_id');
             $table->softDeletes();
             $table->timestamps();
         });
