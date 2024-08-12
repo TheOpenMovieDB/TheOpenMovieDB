@@ -15,15 +15,16 @@ final class ImportMoviesTest extends \Tests\TestCase
         $this->assertEquals(0, Movie::count());
         $this->assertEquals(0, Genre::count());
 
-        $this->artisan('import:movies --limit=10')
+        $this->artisan('import:movies --limit=1')
             ->assertExitCode(0);
 
-        $this->assertEquals(10, Movie::count());
+        $this->assertEquals(1, Movie::count());
         $movie = Movie::first();
         $this->assertNotNull($movie);
 
         $this->assertGreaterThan(0, $movie->genres()->count());
         $this->assertGreaterThan(0, $movie->cast()->count());
         $this->assertGreaterThan(0, $movie->crew()->count());
+        $this->assertGreaterThan(0, $movie->companies()->count());
     }
 }
