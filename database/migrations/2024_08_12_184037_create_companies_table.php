@@ -16,7 +16,7 @@ return new class () extends Migration {
         Schema::create(Company::getTableName(), function (Blueprint $table): void {
             $table->id();
             $table->integer('tmdb_id');
-            $table->foreignIdFor(\App\Models\User::class,'user_id');
+            $table->foreignIdFor(App\Models\User::class, 'user_id');
             $table->string('name');
             $table->string('logo_path')->nullable();
             $table->string('origin_country')->nullable();

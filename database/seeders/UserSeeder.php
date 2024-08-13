@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -7,11 +9,11 @@ use Exception;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class UserSeeder extends Seeder
+final class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        if (config('system.password') === null) {
+        if (null === config('system.password')) {
             throw new Exception('The system password cannot be null.');
         }
         User::create([

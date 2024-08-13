@@ -16,9 +16,9 @@ use OwenIt\Auditing\Auditable;
  */
 final class Movie extends Model implements \OwenIt\Auditing\Contracts\Auditable
 {
+    use Auditable;
     use HasFactory;
     use HasTableName;
-    use Auditable;
 
     protected $table = 'movies';
 
