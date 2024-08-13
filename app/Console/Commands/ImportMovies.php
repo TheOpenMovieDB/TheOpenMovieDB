@@ -5,21 +5,13 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\CreateMovieAction;
-use App\Enums\ReleaseStatus;
-use App\Models\Company;
-use App\Models\Genre;
 use App\Models\Movie;
-use App\Models\Person;
 use App\Models\User;
 use App\Services\TmdbImportService;
-use Chiiya\Tmdb\Entities\Common\CastCredit;
-use Chiiya\Tmdb\Entities\Genre as TmdbGenre;
-use Chiiya\Tmdb\Entities\Movies\MovieDetails;
 use Chiiya\Tmdb\Repositories\MovieRepository;
 use Chiiya\Tmdb\Repositories\PersonRepository;
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Throwable;
@@ -55,8 +47,7 @@ final class ImportMovies extends Command
     public function __construct(
         private readonly MovieRepository  $tmdbMovieRepository,
         private readonly PersonRepository $personRepository,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
@@ -71,22 +62,22 @@ final class ImportMovies extends Command
             $tmdbService = new TmdbImportService($this->baseUrl, 'movies');
             $filePath = $tmdbService->process();
 
-            if (!Storage::disk('tmdb_files')->exists($filePath)) {
+            if ( ! Storage::disk('tmdb_files')->exists($filePath)) {
                 $this->error("File not found on disk: tmdb_files");
                 return;
             }
 
             $movies = collect(explode("\n", trim(Storage::disk('tmdb_files')->get($filePath))))
-                ->map(fn($line) => json_decode($line));
+                ->map(fn ($line) => json_decode($line));
 
             if ($limit = (int)$this->option('limit')) {
                 $movies = $movies->take($limit);
             }
 
-            $movies->each(fn($movie) => $this->importMovie($movie));
+            $movies->each(fn ($movie) => $this->importMovie($movie));
 
             $tmdbService->delete();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->error($exception->getMessage());
         }
     }
@@ -115,12 +106,12 @@ final class ImportMovies extends Command
 
             $movieDetails = $this->tmdbMovieRepository->getMovie($movie->id, ['append_to_response' => 'credits']);
 
-            $systemUserId = cache()->remember('system_user_id', now()->addMinutes(30), fn() => User::whereName(config('system.name'))->firstOrFail()->id);
+            $systemUserId = cache()->remember('system_user_id', now()->addMinutes(30), fn () => User::whereName(config('system.name'))->firstOrFail()->id);
 
             CreateMovieAction::handle($movieDetails, $systemUserId, $this->personRepository);
 
             $this->info("Successfully imported movie with TMDb ID {$movie->id}.");
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error("Failed to import movie with TMDb ID {$movie->id}: {$e->getMessage()}");
         }
     }

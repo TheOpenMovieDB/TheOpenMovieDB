@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Enums\ReleaseStatus;
-use Chiiya\Tmdb\Entities\Common\CrewCredit;
 use App\Models\{Company, Genre, Movie, Person};
 use Chiiya\Tmdb\Entities\Common\CastCredit;
+use Chiiya\Tmdb\Entities\Common\CrewCredit;
 use Chiiya\Tmdb\Entities\Movies\MovieDetails;
 use Chiiya\Tmdb\Repositories\PersonRepository;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-
-class CreateMovieAction
+final class CreateMovieAction
 {
     /**
      * Save a movie to the database.
@@ -73,11 +72,12 @@ class CreateMovieAction
      */
     private static function saveGenres(Movie $movie, MovieDetails $movieData, int $userId): void
     {
-        $genreIds = collect($movieData->genres)->map(fn($genre) => Genre::firstOrCreate([
-            'tmdb_id' => $genre->id,
-            'name' => $genre->name,
-            'user_id' => $userId,
-        ])->id
+        $genreIds = collect($movieData->genres)->map(
+            fn ($genre) => Genre::firstOrCreate([
+                'tmdb_id' => $genre->id,
+                'name' => $genre->name,
+                'user_id' => $userId,
+            ])->id
         );
 
         $movie->genres()->sync($genreIds);
@@ -173,14 +173,15 @@ class CreateMovieAction
     private static function saveCompanies(Movie $movie, array $companies, int $userId): void
     {
 
-        $companyIds = collect($companies)->map(fn($company) => Company::query()->firstOrCreate([
-            'tmdb_id' => $movie->id,
-        ], [
-            'name' => $company->name,
-            'logo_path' => $company->logo_path,
-            'origin_country' => $company->origin_country,
-            'user_id' => $userId
-        ])->id
+        $companyIds = collect($companies)->map(
+            fn ($company) => Company::query()->firstOrCreate([
+                'tmdb_id' => $movie->id,
+            ], [
+                'name' => $company->name,
+                'logo_path' => $company->logo_path,
+                'origin_country' => $company->origin_country,
+                'user_id' => $userId
+            ])->id
         );
 
         $movie->companies()->sync($companyIds);
