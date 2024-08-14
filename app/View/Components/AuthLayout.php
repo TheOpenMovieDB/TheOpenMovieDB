@@ -7,13 +7,13 @@ namespace App\View\Components;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
-final class GuestLayout extends Component
+final class AuthLayout extends Component
 {
     /**
      * Get the view / contents that represents the component.
      */
     public function render(): View
     {
-        return view('layouts.guest');
+        return view('layouts.auth');
     }
 }
