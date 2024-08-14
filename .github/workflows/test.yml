@@ -51,4 +51,6 @@ jobs:
           DB_DATABASE: database/database.sqlite
           TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
           SYSTEM_PASSWORD: 'password'
+          SYSTEM_USERNAME: 'System',
+          SYSTEM_EMAIL: 'System@null.dev'
         run: php artisan test
