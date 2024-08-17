@@ -1,15 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\View\Components;
-
-
 
 use App\Models\Movie;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class MovieCard extends Component
+final class MovieCard extends Component
 {
     /**
      * Create a new component instance.

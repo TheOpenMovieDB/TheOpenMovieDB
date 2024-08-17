@@ -28,12 +28,12 @@ final class Common
      * @todo this is a temp function will be removed soon
      *
      */
-    public static function ImagePath(string $path = null, string $prefix = null): string
+    public static function ImagePath(?string $path = null, ?string $prefix = null): string
     {
-        if (is_null($path)) {
+        if (null === $path) {
             return '';
         }
-        $prefix = $prefix ?? 'https://image.tmdb.org/t/p/original';
+        $prefix ??= 'https://image.tmdb.org/t/p/original';
         return $prefix . $path;
     }
 }

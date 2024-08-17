@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire;
 
 use App\Models\Movie;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-class Movies extends Component
+final class Movies extends Component
 {
     /**
      * @return \Illuminate\Database\Eloquent\Collection<Movie>
@@ -18,8 +19,8 @@ class Movies extends Component
 
         return Movie::query()
             ->with([
-                'genres' => fn($query) => $query->limit(3),
-                'cast' => fn($query) => $query->limit(3)
+                'genres' => fn ($query) => $query->limit(3),
+                'cast' => fn ($query) => $query->limit(3)
             ])
             ->orderBy('release_date', 'desc')
             ->limit(10)
