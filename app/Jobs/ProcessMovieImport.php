@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Actions\CreateMovieAction;
@@ -8,14 +10,10 @@ use App\Models\User;
 use Chiiya\Tmdb\Repositories\MovieRepository;
 use Chiiya\Tmdb\Repositories\PersonRepository;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\App;
 use Throwable;
 
-class ProcessMovieImport implements ShouldQueue
+final class ProcessMovieImport implements ShouldQueue
 {
     use Queueable;
 
@@ -24,8 +22,7 @@ class ProcessMovieImport implements ShouldQueue
      */
     public function __construct(
         private readonly int $movieId
-    )
-    {
+    ) {
     }
 
     /**
@@ -39,7 +36,7 @@ class ProcessMovieImport implements ShouldQueue
             }
             $movieDetails = $movieRepository->getMovie($this->movieId, ['append_to_response' => 'credits']);
 
-            $systemUserId = cache()->remember('system_user_id', now()->addMinutes(30), fn() => User::whereName(config('system.name'))->firstOrFail()->id);
+            $systemUserId = cache()->remember('system_user_id', now()->addMinutes(30), fn () => User::whereName(config('system.name'))->firstOrFail()->id);
 
             CreateMovieAction::handle($movieDetails, $systemUserId, $personRepository);
         } catch (Throwable $exception) {

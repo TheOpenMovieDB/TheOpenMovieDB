@@ -11,7 +11,6 @@ use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-
 final class ImportMovies extends Command
 {
     /**
@@ -52,14 +51,14 @@ final class ImportMovies extends Command
             $filePath = $tmdbService->process();
 
             $movieIds = collect(explode("\n", trim(Storage::disk('tmdb_files')->get($filePath))))
-                ->map(fn($line) => json_decode($line))
+                ->map(fn ($line) => json_decode($line))
                 ->pluck('id');
 
             if ($limit = (int)$this->option('limit')) {
                 $movieIds = $movieIds->take($limit);
             }
 
-            $movieIds->each(fn($movieId) => ProcessMovieImport::dispatch($movieId));
+            $movieIds->each(fn ($movieId) => ProcessMovieImport::dispatch($movieId));
 
             $tmdbService->delete();
         } catch (Exception $exception) {
