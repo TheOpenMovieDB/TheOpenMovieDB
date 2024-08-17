@@ -27,15 +27,15 @@ return new class () extends Migration {
             $table->string('homepage')->nullable();
             $table->string('original_title')->nullable();
             $table->mediumText('overview')->nullable();
-            $table->unsignedInteger('popularity')->nullable();
+            $table->float('popularity')->nullable();
             $table->string('poster_path')->nullable();
             $table->date('release_date')->nullable();
             $table->unsignedInteger('revenue')->nullable();
             $table->unsignedInteger('runtime')->nullable();
             $table->enum('status', ReleaseStatus::values());
             $table->string('tagline')->nullable();
-            $table->unsignedBigInteger('vote_average')->nullable();
-            $table->unsignedBigInteger('vote_count')->nullable();
+            $table->float('vote_average')->nullable();
+            $table->float('vote_count')->nullable();
             $table->foreignIdFor(App\Models\User::class, 'user_id');
 
             $table->timestamps();
